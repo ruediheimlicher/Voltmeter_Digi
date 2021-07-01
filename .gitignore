@@ -9,4 +9,4 @@ build/*
 *.hex
 *.o
 .dep/*
-
+mini-voltmeter-0.9/
