@@ -33,21 +33,16 @@
 #include <inttypes.h>
 
 /* AVR port and pins connected to '164 and/or LCD */
-#define LCD_PORT                PORTB
-#define LCD_DDR						DDRB
+#define LCD_PORT               PORTB
+#define LCD_DDR                DDRB
+
+#define LCD_RSDS_PIN            0
+#define LCD_ENABLE_PIN          1
+#define LCD_CLOCK_PIN           2
 
 
-#define LCD_RSDS_PIN            5
-#define LCD_ENABLE_PIN          6
-#define LCD_CLOCK_PIN           7
 
-
-/*
-#define LCD_RSDS_PIN            3
-#define LCD_ENABLE_PIN          4
-#define LCD_CLOCK_PIN           5
-*/
-#define LCD_BACKLIGHT_PIN       7
+//#define LCD_BACKLIGHT_PIN       7
 
 /* number of columns on the display */
 #define LCD_COLS 20
@@ -81,6 +76,8 @@
 #define LCD_DISP_LENGTH    20     /**< visibles characters per line of the display */
 #define LCD_START_LINE1  0x00     /**< DDRAM address of first char of line 1 */
 #define LCD_START_LINE2  0x40     /**< DDRAM address of first char of line 2 */
+#define LCD_START_LINE3  0x14     /**< DDRAM address of first char of line 3 */
+#define LCD_START_LINE4  0x54     /**< DDRAM address of first char of line 4 */
 #define LCD_CGRAM             6      /* DB6: set CG RAM address             */
 #define LCD_DDRAM             7      /* DB7: set DD RAM address             */
 
@@ -88,30 +85,36 @@
 
 /* F_CPU is used by delay routines from util/delay.h. May already be defined */
 #ifndef F_CPU
-#define F_CPU 1000000UL  /* 1 MHz CPU clock */
+#define F_CPU 8000000  /* 1 MHz CPU clock */
 #endif
 
 /* functions */
-void lcd_backlight(int);
+//void lcd_backlight(int);
 void lcd_initialize(uint8_t, uint8_t, uint8_t);
 void lcd_load_byte(uint8_t);
 void lcd_send_cmd(void);
 void lcd_send_char(void);
 void lcd_strobe_E(void);
+void lcd_cls(void);
+void lcd_clr_line(uint8_t Linie);
+void lcd_clr_part(uint8_t Linie, uint8_t von, uint8_t bis);
 void lcd_cursor_home(void);
 void lcd_move_cursor(uint8_t, uint8_t);
 void lcd_inc_cursor(uint8_t);
 void lcd_dec_cursor(uint8_t);
+void lcd_gotoxy(uint8_t x, uint8_t y);
 void lcd_putc(const char c);
 void lcd_puts(const char *s);
 void lcd_putint(uint8_t zahl);
-void lcd_putint1(uint8_t zahl);
-void lcd_putint2(uint8_t zahl);
-void lcd_putint16(uint16_t zahl);
-void lcd_puthex(uint8_t zahl);
-void lcd_cls(void);
-void lcd_clr_line(uint8_t Linie);
+void lcd_putint1(uint8_t zahl);   //einstellige Zahl
+void lcd_putint2(uint8_t zahl);   //zweistellige Zahl
+void lcd_puthex(uint8_t zahl);   //Hex
 void lcd_put_zeit(uint8_t minuten, uint8_t stunden);
 void lcd_put_wochentag(uint8_t wd);
 void lcd_put_temperatur(uint16_t temperatur);
+void lcd_put_tempAbMinus20(uint16_t temperatur);
+
+void lcd_CGRAMInit_A(void);
+void lcd_CGRAMInit_Mode(void);
+void lcd_CGRAMInit_Titel(void);
 #endif

@@ -26,8 +26,8 @@ uint16_t loopCount2=0;
 #define OSZIPORT   PORTB      // Ausgang fuer Servo
 #define OSZIDDR   DDRB
 
-#define OSZIA 0            // 
-#define OSZIB 1            // 
+#define OSZIA 4            // 
+#define OSZIB 5            // 
 #define OSZIALO OSZIPORT &= ~(1<<OSZIA)
 #define OSZIAHI OSZIPORT |= (1<<OSZIA)
 #define OSZIATOG OSZIPORT ^= (1<<OSZIA)
@@ -39,7 +39,7 @@ uint16_t loopCount2=0;
 
 #define LOOPLED_PORT   PORTB
 #define LOOPLED_DDR   DDRB
-#define LOOPLED_PIN   2
+#define LOOPLED_PIN   3
 
 #define  IMPULS_MAX 5
 #define  IMPULS_MIN 5
@@ -52,7 +52,7 @@ volatile uint8_t INT0counter = 0; // Anzahl impulse auf Spule
 volatile uint8_t impulscounter = 0; // Anzahl impulse an relais: Sicher ist sicher
 
 
-volatile uint8_t loopcounter = 0; // Anzahl impulse an relais: Sicher ist sicher
+volatile uint16_t loopcounter = 0; // Anzahl impulse an relais: Sicher ist sicher
 
 volatile uint16_t adcspannung = 0;
 volatile uint16_t spannung = 0;
@@ -64,12 +64,12 @@ void slaveinit(void)
    OSZIDDR |= (1<<OSZIA);
    OSZIDDR |= (1<<OSZIB);
 
-   /*
+   DDRC &= ~(1<<0);
    //LCD
-   DDRB |= (1<<LCD_RSDS_PIN);   //Pin 5 von PORT B als Ausgang fuer LCD
-    DDRB |= (1<<LCD_ENABLE_PIN);   //Pin 6 von PORT B als Ausgang fuer LCD
-   DDRB |= (1<<LCD_CLOCK_PIN);   //Pin 7 von PORT B als Ausgang fuer LCD
-*/
+   LCD_DDR |= (1<<LCD_RSDS_PIN);   //Pin 5 von PORT B als Ausgang fuer LCD
+   LCD_DDR |= (1<<LCD_ENABLE_PIN);   //Pin 6 von PORT B als Ausgang fuer LCD
+   LCD_DDR |= (1<<LCD_CLOCK_PIN);   //Pin 7 von PORT B als Ausgang fuer LCD
+
 
     
    
@@ -173,8 +173,9 @@ ISR(WDT_vect)
 int main (void) 
 {
    /* INITIALIZE */
-   watchdog_init();
-   
+   //watchdog_init();
+   slaveinit();
+   _delay_ms(100);
    lcd_initialize(LCD_FUNCTION_8x2, LCD_CMD_ENTRY_INC, LCD_CMD_ON);
    lcd_puts("Guten Tag\0");
    _delay_ms(100);
@@ -185,7 +186,7 @@ int main (void)
    
 //   int0_init();
    
-   slaveinit();
+
    initADC(0);
 //   lcd_gotoxy(16,0);
 //   _delay_ms(100);
@@ -193,26 +194,70 @@ int main (void)
  //  set_sleep_mode(SLEEP_MODE_PWR_DOWN);  //  SLEEP_MODE_PWR_SAVE SLEEP_MODE_PWR_DOWN
    init7segment();
    sei();
-   
+   unsigned int voltage=0;
    //MARK  while
+   lcd_clr_line(0);
    while (1) 
    {
       loopCount0++;
-      if (loopCount0 > 0xFFF)
+      if (loopCount0 > 0x4F)
       {
          LOOPLED_PORT ^= (1<<LOOPLED_PIN);
          loopCount0 = 0;
-         lcd_gotoxy(0,1);
-         lcd_putint16(adcspannung);
+         //lcd_gotoxy(0,1);
+         //lcd_putint12(adcspannung);
       }
-      loopcounter++;
-      if (loopcounter == 1)
-      {
-         adcspannung = readKanal(0);
-      }
-      loopcounter = loopcounter & 0x1F;
       
+      loopcounter++;
+      if (loopcounter == 2)
+      {
+         loopCount1++;
+         adcspannung = readKanal(0);
+         
+         if (adcspannung > voltage && adcspannung -voltage > 20){
+                 voltage=adcspannung + adcspannung;
+         }else if (adcspannung < voltage && voltage -adcspannung > 20){
+                 voltage=adcspannung + adcspannung;
+         }else{
+                 // just build average (avoid toggle):
+                 voltage=voltage + adcspannung;
+         }
+         voltage=voltage/2;
+         lcd_gotoxy(0,0);
+         //voltage = 43;
+         lcd_putint12(voltage);
 
+         #if (DP_DIG == 1)    // runden, by RWCooper 2007/11/25
+           voltage = (voltage + 5) / 10;
+         #endif
+         lcd_putc(' ');
+         lcd_putint12(voltage);
+       
+         
+         if ((loopCount1 % 0xEF)== 0)
+         {
+       //  lcd_gotoxy(10,0);
+      //   lcd_putint(loopCount2++);
+         
+    //     PORTC ^= (1<<(loopCount2 & 0x03));
+    //        PORTC ^= (1<<1);
+     //       PORTC ^= (1<<2);
+            
+            
+         }
+         OSZIALO;
+         //rotsegment();
+         upd7segment(voltage);
+         OSZIAHI;
+      }
+      if (loopcounter > 0x4FFF)
+      {
+         loopcounter = 0;
+      }
+     // loopcounter = loopcounter & 0x4F;
+      
+     // upd7segment(voltage);
+      
    }
    
    

@@ -72,20 +72,20 @@ void lcddelay_ms(unsigned int ms)/* delay for a minimum of <ms> */
 }
 
 
-
+/*
 void 
 lcd_backlight(int backlight_on)
 {
         if (backlight_on)
         {
-                /* LCD Backlight on */
+                // LCD Backlight on 
                 LCD_PORT |= _BV(LCD_BACKLIGHT_PIN);                
         } else {
-                /*  LCD Backlight off */
+                //  LCD Backlight off 
                 LCD_PORT &= ~_BV(LCD_BACKLIGHT_PIN);
         }
 }
-
+*/
 /*
  * Initializes the LCD.  Should be called during the initialization of the 
  * program.
@@ -381,19 +381,27 @@ Returns:  none
 *************************************************************************/
 void lcd_gotoxy(uint8_t x, uint8_t y)
 {
-    if ( y==0 ) 
-		{
-		
-        lcd_load_byte((1<<LCD_DDRAM)+LCD_START_LINE1+x);
-		lcd_send_cmd();
-		}
-    else
-	{
-       
-		lcd_load_byte((1<<LCD_DDRAM)+LCD_START_LINE2+x);
-		lcd_send_cmd();
+   switch (y)
+   {
+       case 0:
+           lcd_load_byte((1<<LCD_DDRAM)+LCD_START_LINE1+x);
+         lcd_send_cmd();
+         break;
+      case 1:
+         lcd_load_byte((1<<LCD_DDRAM)+LCD_START_LINE2+x);
+         lcd_send_cmd();
+         break;
+      case 2:
+         lcd_load_byte((1<<LCD_DDRAM)+LCD_START_LINE3+x);
+         lcd_send_cmd();
+         break;
+      case 3:
+         lcd_load_byte((1<<LCD_DDRAM)+LCD_START_LINE4+x);
+         lcd_send_cmd();
+         break;
+      
 
-		}
+   }//switch
 
 }/* lcd_gotoxy */
 
@@ -572,7 +580,7 @@ void lcd_put_frac(char* string, uint8_t start, uint8_t komma, uint8_t frac)
 void lcd_put_zeit(uint8_t minuten, uint8_t stunden)
 {
 	//							13:15
-	int8_t i; 
+	//int8_t i; 
 	if (stunden< 10)
 	{
 		//	lcd_putc(' ');
