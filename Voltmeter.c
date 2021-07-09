@@ -39,11 +39,17 @@ uint16_t loopCount2=0;
 
 #define LOOPLED_PORT   PORTB
 #define LOOPLED_DDR   DDRB
-#define LOOPLED_PIN   3
+#define LOOPLED_PIN   4
 
 #define  IMPULS_MAX 5
 #define  IMPULS_MIN 5
 #define ANZAHL_IMPULSE 3
+
+#define MITTELWERTBREITE 8
+
+uint16_t mittelwertarray[MITTELWERTBREITE] = {};
+uint8_t ringpos = 0;
+uint16_t mittelwert = 0;
 
 volatile uint8_t   INT0status=0x00;   
 
@@ -76,7 +82,7 @@ void slaveinit(void)
    ADCSRA = 0;
 //   MCUCR = 0;
    SMCR |= (1<<SE);
-  SMCR |= (1<<SM1);
+   SMCR |= (1<<SM1);
    SMCR |= (1<<SM0);
    
 }
@@ -202,61 +208,65 @@ int main (void)
       loopCount0++;
       if (loopCount0 > 0x4F)
       {
+         
          LOOPLED_PORT ^= (1<<LOOPLED_PIN);
          loopCount0 = 0;
-         //lcd_gotoxy(0,1);
-         //lcd_putint12(adcspannung);
+         /*
+         lcd_gotoxy(0,0);
+         lcd_putint12(adcspannung);
+         lcd_gotoxy(0,1);
+         //voltage = 43;
+         lcd_putint12(voltage);
+         lcd_putc(' ');
+         lcd_putint12(mittelwert);
+*/
       }
       
       loopcounter++;
       if (loopcounter == 2)
       {
          loopCount1++;
-         adcspannung = readKanal(0);
+         adcspannung = readKanal(1);
+         mittelwertarray[(ringpos & 0x03)] = adcspannung;
+         ringpos ++;
+         mittelwert = 0;
+         for(uint8_t i=0;i<MITTELWERTBREITE;i++)
+         {
+            mittelwert += mittelwertarray[i];
+         }
+         mittelwert /= MITTELWERTBREITE;
          
-         if (adcspannung > voltage && adcspannung -voltage > 20){
+         if ((adcspannung > voltage) && (adcspannung -voltage > 20))
+         {
                  voltage=adcspannung + adcspannung;
-         }else if (adcspannung < voltage && voltage -adcspannung > 20){
+         }else if ((adcspannung < voltage) && (voltage -adcspannung > 20))
+         {
                  voltage=adcspannung + adcspannung;
          }else{
                  // just build average (avoid toggle):
                  voltage=voltage + adcspannung;
          }
          voltage=voltage/2;
-         lcd_gotoxy(0,0);
-         //voltage = 43;
-         lcd_putint12(voltage);
 
          #if (DP_DIG == 1)    // runden, by RWCooper 2007/11/25
-           voltage = (voltage + 5) / 10;
+    //       voltage = (voltage + 5) / 10;
          #endif
-         lcd_putc(' ');
-         lcd_putint12(voltage);
+  //       lcd_putc(' ');
+  //       lcd_putint12(voltage);
        
          
-         if ((loopCount1 % 0xEF)== 0)
-         {
-       //  lcd_gotoxy(10,0);
-      //   lcd_putint(loopCount2++);
-         
-    //     PORTC ^= (1<<(loopCount2 & 0x03));
-    //        PORTC ^= (1<<1);
-     //       PORTC ^= (1<<2);
-            
-            
-         }
+          
          OSZIALO;
-         //rotsegment();
-         upd7segment(voltage);
+ 
          OSZIAHI;
       }
-      if (loopcounter > 0x4FFF)
+      if (loopcounter > 0x1F)
       {
          loopcounter = 0;
       }
      // loopcounter = loopcounter & 0x4F;
-      
-     // upd7segment(voltage);
+      //voltage = 45;
+      upd7segment(mittelwert);
       
    }
    

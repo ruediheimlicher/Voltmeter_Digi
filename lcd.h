@@ -33,12 +33,12 @@
 #include <inttypes.h>
 
 /* AVR port and pins connected to '164 and/or LCD */
-#define LCD_PORT               PORTB
-#define LCD_DDR                DDRB
+#define LCD_PORT               PORTC
+#define LCD_DDR                DDRC
 
-#define LCD_RSDS_PIN            0
-#define LCD_ENABLE_PIN          1
-#define LCD_CLOCK_PIN           2
+#define LCD_RSDS_PIN            3
+#define LCD_ENABLE_PIN          4
+#define LCD_CLOCK_PIN           5
 
 
 
