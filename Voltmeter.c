@@ -45,7 +45,7 @@ uint16_t loopCount2=0;
 #define  IMPULS_MIN 5
 #define ANZAHL_IMPULSE 3
 
-#define MITTELWERTBREITE 8
+#define MITTELWERTBREITE 4
 
 uint16_t mittelwertarray[MITTELWERTBREITE] = {};
 uint8_t ringpos = 0;
@@ -226,15 +226,18 @@ int main (void)
       if (loopcounter == 2)
       {
          loopCount1++;
-         adcspannung = readKanal(1);
-         mittelwertarray[(ringpos & 0x03)] = adcspannung;
+         adcspannung = readKanal(1) ;;//- readKanal(2); // Differenz
+         /*
+         mittelwertarray[(ringpos & 0x02)] = adcspannung;
          ringpos ++;
+         
          mittelwert = 0;
          for(uint8_t i=0;i<MITTELWERTBREITE;i++)
          {
             mittelwert += mittelwertarray[i];
          }
          mittelwert /= MITTELWERTBREITE;
+         */
          
          if ((adcspannung > voltage) && (adcspannung -voltage > 20))
          {
@@ -256,17 +259,18 @@ int main (void)
        
          
           
-         OSZIALO;
+  //       OSZIALO;
  
-         OSZIAHI;
+  //       OSZIAHI;
       }
-      if (loopcounter > 0x1F)
+      if (loopcounter > 0x14)
       {
          loopcounter = 0;
       }
      // loopcounter = loopcounter & 0x4F;
       //voltage = 45;
-      upd7segment(mittelwert);
+      //upd7segment(mittelwert);
+      upd7segment(voltage);
       
    }
    
